@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Chat room</title>
+</head>
+
+<body>
+    <h1>聊天室</h1>
+    <hr>
+    <div>
+        <textarea id="contents" rows="20" cols="120" readonly></textarea>
+    </div>
+    <div class="send">
+        <input type="text" id="content" size="50">
+        <input type="button" id="send" value="发送">
+    </div>
+    <p>
+        <a id="quit" href="javascript:void(0);">退出聊天室</a>
+    </p>
+    <script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>
+    <script>
+        $(function() {
+            function appendContent($ta, message) {
+                var contents = $ta.val();
+                contents += '\n' + message;
+                $ta.val(contents);
+                $ta[0].scrollTop = $ta[0].scrollHeight;
+            }
+
+            function sendMessage() {
+                message = $('#content').val().trim();
+                if (message.length > 0) {
+                    ws.send(message);
+                    appendContent($('#contents'), '我: ' + message);
+                    $('#content').val('');
+                }
+            }
+            var ws = new WebSocket('ws://localhost:8888/chat');
+            ws.onopen = function(evt) {
+                $('#contents').val('~~~欢迎您进入聊天室~~~');
+            };
+            ws.onmessage = function(evt) {
+                appendContent($('#contents'), evt.data);
+            };
+            $('#send').on('click', sendMessage);
+            $('#content').on('keypress', function(evt) {
+                keycode = evt.keyCode || evt.which;
+                if (keycode == 13) {
+                    sendMessage();
+                }
+            });
+            $('#quit').on('click', function(evt) {
+                ws.close();
+                location.href = '/login';
+            });
+        });
+    </script>
+</body>
+
+</html>
